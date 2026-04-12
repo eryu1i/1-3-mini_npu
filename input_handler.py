@@ -2,7 +2,7 @@ from reporter import print_matrix
 
 def input_matrix(N, name):
     while True:
-        print(f"{name}을(를) 입력하세요. ({N}x{N}, 한 줄에 {N}개씩):")
+        print(f"{name}를(을) 입력하세요. ({N}x{N}, 한 줄에 {N}개씩):")
         matrix = []
 
         for i in range(N):
@@ -23,7 +23,7 @@ def input_matrix(N, name):
 
             matrix.append(row_values)
 
-    if len(matrix) == N:
-        print(f"f{name} 저장 완료:")
-        print_matrix(matrix)
-        return matrix
+        if len(matrix) == N:
+            print(f"{name} 저장 완료:")
+            print_matrix(matrix)
+            return matrix

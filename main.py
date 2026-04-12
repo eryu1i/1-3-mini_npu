@@ -26,12 +26,16 @@ def mode_1():
 
     # 판정 출력
     print(f"\nA 점수: {score_a:.1f} | B 점수: {score_b:.1f}")
-    judgment = judge(score_a, score_b)
-    print(f"판정: {judgment}")
+    if abs(score_a - score_b) < 1e-9:
+        print("판정: 판정 불가")
+    elif score_a > score_b:
+        print("판정: A")
+    else:
+        print("판정: B")
 
     # 성능 분석
     avg = measure(pattern, filter_a, 3)
-    print_performance_table([3, avg])
+    print_performance_table([(3, avg)])
 
 
 def mode_2():

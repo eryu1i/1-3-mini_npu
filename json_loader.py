@@ -1,5 +1,6 @@
 import json
 
+
 def load_json(path):
     try:
         with open(path, "r") as f:
@@ -21,6 +22,14 @@ def normalize_label(raw):
 
 def validate_and_load(path):
     data = load_json(path)
+
+    # 키 존재 검증
+    if "filters" not in data:
+        print("오류: JSON에 'filters' 키가 없습니다.")
+        exit(1)
+    if "patterns" not in data:
+        print("오류: JSON에 'patterns' 키가 없습니다.")
+        exit(1)
 
     # 필터 로드 + 라벨 정규화
     filters = {}
@@ -69,7 +78,7 @@ def validate_and_load(path):
             patterns[pattern_key] = entry
             continue
 
-        if filter_rows != N or filters_cols != N:
+        if filter_rows != N or filter_cols != N:
             entry["error"] = f"필터 크기 불일치: {filter_rows}x{filter_cols} (기대: {N}x{N})"
             patterns[pattern_key] = entry
             continue

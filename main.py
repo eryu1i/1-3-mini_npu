@@ -1,7 +1,8 @@
-from mac import mac_2d
+from mac import mac_2d, flatten
 from input_handler import input_matrix
 from json_loader import validate_and_load
-from performance import measure, print_performance_table
+from pattern_generator import generate_cross
+from performance import measure_2d, measure_1d, print_performance_table
 from reporter import print_case_result, print_summary
 
 
@@ -34,8 +35,10 @@ def mode_1():
         print("판정: B")
 
     # 성능 분석
-    avg = measure(pattern, filter_a, 3)
-    print_performance_table([(3, avg)])
+    cross_pattern = generate_cross(3)
+    avg_2d = measure_2d(cross_pattern, filter_a, 3)
+    avg_1d = measure_1d(flatten(cross_pattern), flatten(filter_a), 3)
+    print_performance_table([(3, avg_2d, avg_1d)])
 
 
 def mode_2():
@@ -47,7 +50,7 @@ def mode_2():
     for pattern_key, pattern_data in patterns.items():
         # 스키마 오류 케이스
         if pattern_data["error"] is not None:
-            print(f"[pattern_key] FAIL | 사유: {pattern_data['error']}")
+            print(f"[{pattern_key}] FAIL | 사유: {pattern_data['error']}")
             results.append({
                 "key": pattern_key,
                 "judgment": "FAIL",
@@ -89,9 +92,11 @@ def mode_2():
         if filter_key not in filters:
             continue
         # 임의의 필터 Cross로 측정
-        dummy_pattern = filters[filter_key]["Cross"]
-        avg = measure(dummy_pattern, filters[filter_key]["Cross"], N)
-        perf_results.append((N, avg))
+        pattern = generate_cross(N)
+        cross_filter = filters[filter_key]["Cross"]
+        avg_2d = measure_2d(pattern, cross_filter, N)
+        avg_1d = measure_1d(flatten(pattern), flatten(cross_filter), N)
+        perf_results.append((N, avg_2d, avg_1d))
 
     print_performance_table(perf_results)
 
@@ -107,7 +112,7 @@ def main():
 
     if mode == "1":
         mode_1()
-    elif mode =="2":
+    elif mode == "2":
         mode_2()
     else:
         print("잘못된 입력입니다. 1 또는 2를 입력하세요.")

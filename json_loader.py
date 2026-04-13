@@ -8,6 +8,9 @@ def load_json(path):
     except FileNotFoundError:
         print(f"오류: {path} 파일을 찾을 수 없습니다.")
         exit(1)
+    except json.JSONDecodeError as e:
+        print(f"오류: {path} 파일 형식이 잘못됐습니다. ({e})")
+        exit(1)
 
 
 def normalize_label(raw):
@@ -17,13 +20,13 @@ def normalize_label(raw):
     elif raw == "x":
         return "X"
     else:
-        raise ValueError(f"알 수 없는 라벨: {raw}")
+        raise ValueError
 
 
 def validate_and_load(path):
     data = load_json(path)
 
-    # 키 존재 검증
+    # filters / patterns 키 존재 여부 검증
     if "filters" not in data:
         print("오류: JSON에 'filters' 키가 없습니다.")
         exit(1)
@@ -36,25 +39,36 @@ def validate_and_load(path):
     for size_key, filter_dict in data["filters"].items():
         filters[size_key] = {}
         for label, matrix in filter_dict.items():
-            normalized = normalize_label(label)
-            filters[size_key][normalized] = matrix
+            try:
+                normalized = normalize_label(label)
+            except ValueError:
+                print(f"오류: {size_key} 필터 라벨 오류: {label}")
+                exit(1)
+            filters[size_key][normalized] = [[float(v) for v in row] for row in matrix]
 
     # 패턴 로드 + 스키마 검증
     patterns = {}
     for pattern_key, pattern_data in data["patterns"].items():
-        # 키에서 N 추출 (size_5_0 -> 5)
         parts = pattern_key.split("_")
-        N = int(parts[1])
-        filter_key = f"size_{N}"
 
         entry = {
             "input":    None,
             "expected": None,
-            "N":        N,
+            "N":        None,
             "error":    None
-        }
+            }
 
-        # 필수 키 존재 여부 검증
+        try:
+            N = int(parts[1])
+        except (ValueError, IndexError):
+            entry["error"] = f"패턴 키 형식 오류: {pattern_key}"
+            patterns[pattern_key] = entry
+            continue
+
+        entry["N"] = N
+        filter_key = f"size_{N}"
+
+        # input / expected 키 존재 여부 검증
         if "input" not in pattern_data or "expected" not in pattern_data:
             entry["error"] = "input 또는 expected 키 누락"
             patterns[pattern_key] = entry
@@ -66,26 +80,53 @@ def validate_and_load(path):
             patterns[pattern_key] = entry
             continue
 
-        # 크기 검증
+        # 크기 검증 - 패턴
         pattern_input = pattern_data["input"]
-        pattern_rows = len(pattern_input)
-        pattern_cols = len(pattern_input[0])
-        filter_rows = len(filters[filter_key]["Cross"])
-        filter_cols = len(filters[filter_key]["Cross"][0])
 
-        if pattern_rows != N or pattern_cols != N:
-            entry["error"] = f"패턴 크기 불일치: {pattern_rows}x{pattern_cols} (기대: {N}x{N})"
+        if len(pattern_input) != N:
+            entry["error"] = f"패턴 행 수 불일치: {len(pattern_input)} (기대: {N})"
             patterns[pattern_key] = entry
             continue
 
-        if filter_rows != N or filter_cols != N:
-            entry["error"] = f"필터 크기 불일치: {filter_rows}x{filter_cols} (기대: {N}x{N})"
+        pattern_error = None
+        for i, row in enumerate(pattern_input):
+            if len(row) != N:
+                pattern_error = f"패턴 {i}번째 행 열 수 불일치: {len(row)} (기대: {N})"
+                break
+
+        if pattern_error:
+            entry["error"] = pattern_error
+            patterns[pattern_key] = entry
+            continue
+
+        # 크기 검증 - 필터
+        filter_error = None
+        
+        for label in ["Cross", "X"]:
+            f = filters[filter_key][label]
+
+            if len(f) != N:
+                filter_error = f"필터 {label} 행 수 불일치: {len(f)} (기대: {N})"
+                break
+
+            for i, row in enumerate(f):
+                if len(row) != N:
+                    filter_error = f"필터 {label} {i}번째 행 열 수 불일치: {len(row)} (기대: {N})"
+                    break
+
+        if filter_error:
+            entry["error"] = filter_error
             patterns[pattern_key] = entry
             continue
 
         # 검증 통과
-        entry["input"]    = pattern_input
-        entry["expected"] = normalize_label(pattern_data["expected"])
+        entry["input"] = [[float(v) for v in row] for row in pattern_data["input"]]
+        try:
+            entry["expected"] = normalize_label(pattern_data["expected"])
+        except ValueError:
+            entry["error"] = f"알 수 없는 expected 라벨: {pattern_data['expected']}"
+            patterns[pattern_key] = entry
+            continue
         patterns[pattern_key] = entry
 
     return filters, patterns

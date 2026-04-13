@@ -1,6 +1,6 @@
 def print_matrix(matrix):
     for row in matrix:
-        print(" ".join(str(int(v)) for v in row))
+        print(" ".join(str(int(v)) if v == int(v) else str(v) for v in row))
 
 
 def print_case_result(key, score_cross, score_x, judgment, expected, pass_fail):

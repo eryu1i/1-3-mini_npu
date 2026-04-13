@@ -96,13 +96,14 @@ def mode_2():
         filter_key = f"size_{N}"
         if filter_key not in filters:
             continue
-        # 임의의 필터 Cross로 측정
+        # 생성기로 필터 Cross 생성
         pattern = generate_cross(N)
         cross_filter = filters[filter_key]["Cross"]
         avg_2d = measure_2d(pattern, cross_filter, N)
         avg_1d = measure_1d(flatten(pattern), flatten(cross_filter), N)
         perf_results.append((N, avg_2d, avg_1d))
 
+    print()
     print_performance_table(perf_results)
 
     # 결과 요약
@@ -113,14 +114,17 @@ def main():
     print("모드를 선택하세요")
     print("1: 사용자 입력 (3x3)")
     print("2: data.json 분석")
-    mode = input("선택: ").strip()
-
-    if mode == "1":
-        mode_1()
-    elif mode == "2":
-        mode_2()
-    else:
-        print("잘못된 입력입니다. 1 또는 2를 입력하세요.")
+    
+    while True:
+        mode = input("선택: ").strip()
+        if mode == "1":
+            mode_1()
+            break
+        elif mode == "2":
+            mode_2()
+            break
+        else:
+            print("잘못된 입력입니다. 1 또는 2를 입력하세요.")
 
 
 if __name__ == "__main__":

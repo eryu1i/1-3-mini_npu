@@ -12,7 +12,7 @@ def print_summary(results):
     passed = sum(1 for r in results if r["pass_fail"] == "PASS")
     failed = total - passed
 
-    print(f"\n전체: {total} | 통과 {passed} | 실패: {failed}")
+    print(f"\n전체: {total} | 통과: {passed} | 실패: {failed}")
 
     # 실패 케이스 목록 출력
     if failed > 0:

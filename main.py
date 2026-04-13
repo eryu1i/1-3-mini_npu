@@ -72,7 +72,12 @@ def mode_2():
         # 판정
         judgment  = judge(score_cross, score_x)
         pass_fail = "PASS" if judgment == expected else "FAIL"
-        reason    = "" if pass_fail == "PASS" else "판정 불일치"
+        if pass_fail == "PASS":
+            reason = ""
+        elif judgment == "UNDECIDED":
+            reason = "동점 처리 규칙에 따라 FAIL"
+        else:
+            reason = "판정 불일치"
 
         # 케이스별 출력
         print_case_result(pattern_key, score_cross, score_x, judgment, expected, pass_fail)

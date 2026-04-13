@@ -1,6 +1,8 @@
 from pattern_generator import generate_cross, generate_x
 import json
 
+# pattern_generator.py 이용해 data.json 생성
+
 data = {
     "filters": {
         "size_5": {
@@ -17,8 +19,11 @@ data = {
         }
     },
     "patterns": {
-        "size_5_0": {"input": generate_cross(5), "expected": "+"},
-        "size_5_1": {"input": generate_x(5), "expected": "x"},
+        "size_5_0": {"input": generate_cross(5), "expected": "+"},   # PASS
+        "size_5_1": {"input": generate_x(5), "expected": "x"},       # PASS
+        "size_5_2": {"input": generate_cross(5), "expected": "x"},   # FAIL - 판정 불일치
+        "size_5_3": {"input": [[0]*5 for _ in range(5)], "expected": "+"}, # FAIL - UNDECIDED
+        "size_5_4": {"input": generate_cross(4), "expected": "+"},   # FAIL - 크기 불일치
         "size_13_0": {"input": generate_cross(13), "expected": "+"},
         "size_13_1": {"input": generate_x(13), "expected": "x"},
         "size_25_0": {"input": generate_cross(25), "expected": "+"},
